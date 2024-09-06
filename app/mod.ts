@@ -112,8 +112,8 @@ interface Props {
 }
 
 /**
- * @title Discord Integration
- * @description Discord integration for deco.cx
+ * @title Carcará Bot
+ * @description Carcará integration for the team
  * @category Frameworks
  * @logo https://raw.githubusercontent.com/vitouwu/deco-cx-apps/feat-discord-bot/discord-bot/logo.png
  */
