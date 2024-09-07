@@ -4,7 +4,6 @@ import type {
   AppContext as AC,
   AppMiddlewareContext as AMC,
   ManifestOf,
-  Resolved,
 } from "deco/mod.ts";
 import { Bot } from "https://deno.land/x/discordeno@18.0.1/bot.ts";
 import { createBot } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
@@ -12,7 +11,7 @@ import { Octokit } from "https://esm.sh/octokit@4.0.2";
 import { GithubClient } from "./client.ts";
 import { WebhookMessage } from "./loaders/webhookMessage.ts";
 import manifest, { type Manifest } from "./manifest.gen.ts";
-import { ProjectUser } from "./types.ts";
+import { Days, Hours, ProjectUser } from "./types.ts";
 
 export type App = ReturnType<typeof CarcaraBot>;
 export type AppContext = AC<App>;
@@ -84,12 +83,14 @@ export interface Project {
   active: boolean;
 }
 
+/**
+ * @title {{name}}
+ */
 interface MessageCronJob {
-  message: Resolved<WebhookMessage | null>;
-  /**
-   * @default * /1 * * *
-   */
-  time: string;
+  name: string;
+  content: WebhookMessage | null;
+  day: Days;
+  hour: Hours;
 }
 
 interface Props {

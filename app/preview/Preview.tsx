@@ -2,6 +2,7 @@ import type { BaseContext } from "deco/engine/core/resolver.ts";
 import type { AppRuntime } from "deco/types.ts";
 import type { JSX } from "preact";
 import type { App } from "../mod.ts";
+import Embed from "../components/Embed.tsx";
 
 export function Preview(
   app: AppRuntime<BaseContext, App["state"]> & {
@@ -19,10 +20,11 @@ export function Preview(
               display: flex;
               justify-content: center;
               align-items: center;
+              flex-direction: column;
+              gap: 24px;
             }
 
             .box {
-              margin: auto;
               background: hsl(223 6.7% 20.6% / 1);
               width: 480px;
               padding: 32px;
@@ -67,6 +69,125 @@ export function Preview(
               line-height: 16px;
               padding: 2px 16px;
             }
+
+            .message-container {
+              display: flex;
+              gap: 18px;
+              background-color: #313338;
+              color: #f2f3f5;
+              border-radius: 16px;
+              padding: 12px;
+            }
+
+            .avatar {
+              width: 80px;
+              height: 80px;
+              border-radius: 999999px;
+            }
+
+            .message-container .content-container {
+              display: flex;
+              flex-direction: column;
+              gap: 4px;
+              margin-top: 8px;
+            }
+
+            .side-colored {
+                 width: 4px;
+                 border-radius: 3px 0 0 3px;
+                 background: red;
+            }
+             .embed {
+                 border-radius: 0 3px 3px 0;
+                 background: #2b2d31;
+                 border-color: #2b2d31;
+                 display: flex;
+                 padding: 8px 10px;
+                 color: rgba(255, 255, 255, 0.6);
+                 font-size: 14px;
+            }
+             .embed .card-block {
+                 padding: 0;
+                 display: flex;
+                 margin-bottom: 10px;
+            }
+             .embed a[href] {
+                 color: #0096cf;
+            }
+             .embed img.embed-thumb {
+                 max-height: 80px;
+                 max-width: 80px;
+                 border-radius: 3px;
+                 flex-shrink: 0;
+                 width: auto;
+                 object-fit: contain;
+                 margin-left: 20px;
+            }
+             .embed .embed-footer {
+                 font-size: 12px;
+                 display: flex;
+                 gap: 8px;
+            }
+             .embed .embed-footer span {
+                 color: rgba(255, 255, 255, 0.6);
+            }
+             .embed .embed-inner .embed-title {
+                 color: #fff;
+            }
+             .embed .embed-inner .embed-author {
+                 display: flex;
+                 align-items: center;
+                 margin-bottom: 5px;
+            }
+             .embed .embed-inner .embed-author img.embed-author-icon {
+                 margin-right: 9px;
+                 width: 20px;
+                 height: 20px;
+                 object-fit: contain;
+                 border-radius: 50%;
+            }
+             .embed .embed-inner .embed-author .embed-author-name {
+                 display: inline-block;
+                 font-weight: 600;
+                 font-size: 14px;
+                 color: #fff !important;
+            }
+             .embed .embed-inner .fields {
+                 display: flex;
+                 flex-wrap: wrap;
+                 flex-direction: row;
+                 box-lines: miltiple;
+                 margin-top: -10px;
+            }
+             .embed .embed-inner .fields .field {
+                 flex: 0;
+                 box-flex: 1;
+                 padding-top: 10px;
+                 max-width: 506px;
+                 min-width: 100%;
+            }
+             .embed .embed-inner .fields .field.inline {
+                 box-flex: 1;
+                 flex: 1;
+                 min-width: 150px;
+                 flex-basis: auto;
+            }
+             .embed .embed-inner .fields .field .field-name {
+                 color: #fff;
+                 font-size: 14px;
+                 margin-bottom: 4px;
+                 font-weight: 600;
+            }
+             .embed .embed-inner .fields .field .field-value {
+                 color: rgba(255, 255, 255, 0.7);
+                 font-size: 14px;
+                 font-weight: 500;
+                 line-height: 1.1em;
+                 white-space: pre-wrap;
+                 margin-top: 6px;
+                 word-wrap: break-word;
+            }
+
         `,
         }}
       />
@@ -109,6 +230,37 @@ export function Preview(
             </a>
           </div>
         </section>
+        {app.state.messages?.map(({ name, content }) => (
+          <section class="box">
+            <div style="wrapper">
+              <h1 class="heading">Webhook - {name}</h1>
+              <div class="message-container">
+                <img
+                  src="https://ozksgdmyrqcxcwhnbepg.supabase.co/storage/v1/object/public/assets/5461/16ac85f3-ef65-4e6f-906e-b0b4de8fb115"
+                  class="avatar"
+                />
+                <div class="content-container">
+                  <p style="font-size: 18px; font-weight: 500; text-align: start">
+                    Deco
+                  </p>
+                  <p
+                    dangerouslySetInnerHTML={{
+                      __html: content?.message.content?.replaceAll(
+                        /<([@#])([!&]?)([0-9]+)>/gmi,
+                        "<span style='background-color: #3c4270; padding:0 2px; border-radius: 3px; color: hsl(235 86.2% 88.6%);'>$1$3</span>",
+                      ) || "",
+                    }}
+                  />
+                  {content?.message.embeds?.map((embed) => (
+                    <Embed
+                      {...embed}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        ))}
       </div>
     </>
   );

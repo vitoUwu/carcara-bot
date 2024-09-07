@@ -1,18 +1,17 @@
-interface Embed {
-  title?: string;
-  description?: string;
-  /**
-   * @format color-input
-   * @default #2b2d31
-   */
-  color?: string;
-}
+import type { Props as EmbedProps } from "../components/Embed.tsx";
 
 interface Message {
+  /**
+   * @title Content
+   * @format textarea
+   */
   content?: string;
-  embeds?: Embed[];
+  embeds?: EmbedProps[];
 }
 
+/**
+ * @title Webhook Message
+ */
 interface Props {
   /**
    * @title Webhook URL
@@ -21,9 +20,6 @@ interface Props {
   message: Message;
 }
 
-/**
- * @title Webhook Message
- */
 export type WebhookMessage = Props;
 
 export default function loader(props: Props): WebhookMessage {
