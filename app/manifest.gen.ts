@@ -13,20 +13,20 @@ import * as $$$$$$$$$$0 from "./workflows/waitForReviewer.ts";
 
 const manifest = {
   "loaders": {
-    "carcara-bot/loaders/projects.ts": $$$0,
-    "carcara-bot/loaders/user.ts": $$$1,
-    "carcara-bot/loaders/webhookMessage.ts": $$$2,
+    "discord-bot/loaders/projects.ts": $$$0,
+    "discord-bot/loaders/user.ts": $$$1,
+    "discord-bot/loaders/webhookMessage.ts": $$$2,
   },
   "actions": {
-    "carcara-bot/actions/interaction.ts": $$$$$$$$$0,
-    "carcara-bot/actions/summary/send.ts": $$$$$$$$$1,
-    "carcara-bot/actions/updateCommands.ts": $$$$$$$$$2,
-    "carcara-bot/actions/webhook.ts": $$$$$$$$$3,
+    "discord-bot/actions/interaction.ts": $$$$$$$$$0,
+    "discord-bot/actions/summary/send.ts": $$$$$$$$$1,
+    "discord-bot/actions/updateCommands.ts": $$$$$$$$$2,
+    "discord-bot/actions/webhook.ts": $$$$$$$$$3,
   },
   "workflows": {
-    "carcara-bot/workflows/waitForReviewer.ts": $$$$$$$$$$0,
+    "discord-bot/workflows/waitForReviewer.ts": $$$$$$$$$$0,
   },
-  "name": "carcara-bot",
+  "name": "discord-bot",
   "baseUrl": import.meta.url,
 };
 

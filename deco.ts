@@ -1,6 +1,6 @@
 const apps = [{
   dir: "./app",
-  name: "carcara-bot",
+  name: "discord-bot",
 }];
 
 const config = {
