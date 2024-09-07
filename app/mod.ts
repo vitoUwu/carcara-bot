@@ -114,8 +114,8 @@ interface Props {
 /**
  * @title Carcará Bot
  * @description Carcará integration for the team
- * @category Frameworks
- * @logo https://raw.githubusercontent.com/vitouwu/deco-cx-apps/feat-discord-bot/discord-bot/logo.png
+ * @category Automation
+ * @logo https://raw.githubusercontent.com/vitouwu/carcara-bot/main/logo.png
  */
 export default function CarcaraBot(props: Props) {
   const { discord, projects, githubToken } = props;
