@@ -1,5 +1,4 @@
-import type { WebhookPullRequestPayload } from "../../types.ts";
-import { isWebhookPullRequestEditPayload } from "./validateWebhookPayload.ts";
+import type { PullRequestEvent, WebhookEvent } from "../../types.ts";
 
 export function isDraft(title: string) {
   return ["[draft]", "(draft)"].some((draft) =>
@@ -7,9 +6,10 @@ export function isDraft(title: string) {
   );
 }
 
-export function wasInDraft(payload: WebhookPullRequestPayload) {
-  return isWebhookPullRequestEditPayload(payload) &&
-    !!payload.changes?.title?.from &&
+export function wasInDraft(
+  payload: PullRequestEvent,
+): payload is WebhookEvent<"pull-request-edited"> {
+  return payload.action === "edited" && !!payload.changes?.title?.from &&
     isDraft(payload.changes.title.from) &&
     !isDraft(payload.pull_request.title);
 }

@@ -1,39 +1,64 @@
-import type {
-  WebhookPingPayload,
-  WebhookPullRequestEditPayload,
-  WebhookPullRequestPayload,
-} from "../../types.ts";
+import type { EventKeys, WebhookEvent } from "../../types.ts";
 
-export function isWebhookPullRequestPayload(
-  props: WebhookPullRequestPayload | unknown,
-): props is WebhookPullRequestPayload {
+export function isWebhookEvent<TEventName extends EventKeys = EventKeys>(
+  props: unknown,
+): props is WebhookEvent<TEventName> {
   return (
     typeof props === "object" &&
     props !== null &&
+    !Array.isArray(props) &&
     "action" in props &&
     typeof props.action === "string"
   );
 }
 
-export function isWebhookPullRequestEditPayload(
-  props: WebhookPullRequestPayload | unknown,
-): props is WebhookPullRequestEditPayload {
+enum Events {
+  Ping = "ping",
+  PullRequest = "pull_request",
+  PullRequestReview = "pull_request_review",
+}
+
+export function isPingEvent(
+  event: string,
+  props: unknown,
+): props is WebhookEvent<"ping"> {
+  return event === Events.Ping && isWebhookEvent<"ping">(props);
+}
+
+export function isPullRequestEvent(
+  event: string,
+  props: unknown,
+): props is WebhookEvent<
+  | "pull-request-opened"
+  | "pull-request-closed"
+  | "pull-request-edited"
+> {
   return (
-    typeof props === "object" &&
-    props !== null &&
-    "action" in props &&
-    typeof props.action === "string" &&
-    props.action === "edited"
+    event === Events.PullRequest &&
+    isWebhookEvent<
+      | "pull-request-opened"
+      | "pull-request-closed"
+      | "pull-request-edited"
+    >(props)
   );
 }
 
-export function isWebhookPingPayload(
-  props: WebhookPingPayload | unknown,
-): props is WebhookPingPayload {
+export function isPullRequestReviewEvent(
+  event: string,
+  props: unknown,
+): props is WebhookEvent<
+  | "pull-request-review-submitted"
+  | "pull-request-review-edited"
+  | "pull-request-review-dismissed"
+  | "pull-request-review-requested"
+> {
   return (
-    typeof props === "object" &&
-    props !== null &&
-    "zen" in props &&
-    typeof props.zen === "string"
+    event === Events.PullRequestReview &&
+    isWebhookEvent<
+      | "pull-request-review-submitted"
+      | "pull-request-review-edited"
+      | "pull-request-review-dismissed"
+      | "pull-request-review-requested"
+    >(props)
   );
 }

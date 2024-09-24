@@ -1,5 +1,6 @@
 {
   "imports": {
+    "app/": "./app/",
     "deco/": "https://cdn.jsdelivr.net/gh/deco-cx/deco@1.96.8/",
     "apps/": "https://cdn.jsdelivr.net/gh/deco-cx/apps@0.56.21/",
     "@std/assert": "jsr:@std/assert@^1.0.2",

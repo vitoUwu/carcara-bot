@@ -5,14 +5,14 @@ import {
   sendMessage,
   snowflakeToBigint,
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
-import type { Project } from "../../mod.ts";
-import type { WebhookPullRequestPayload } from "../../types.ts";
-import { createActionRow, createButton } from "../discord/components.ts";
-import { bold } from "../discord/textFormatting.ts";
-import { getRandomItem } from "../random.ts";
+import type { Project } from "../../../mod.ts";
+import type { WebhookEvent } from "../../../types.ts";
+import { createActionRow, createButton } from "../../discord/components.ts";
+import { bold } from "../../discord/textFormatting.ts";
+import { getRandomItem } from "../../random.ts";
 
 export default async function onPullRequestMerge(
-  props: WebhookPullRequestPayload,
+  props: WebhookEvent<"pull-request-closed">,
   project: Project,
   bot: Bot,
 ) {
