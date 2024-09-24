@@ -11,7 +11,10 @@ export type WebhookEvent<
 ];
 
 export type PullRequestEvent = WebhookEvent<
-  "pull-request-opened" | "pull-request-closed" | "pull-request-edited"
+  | "pull-request-opened"
+  | "pull-request-closed"
+  | "pull-request-edited"
+  | "pull-request-review-requested"
 >;
 export type PullRequestCreatedEvent = WebhookEvent<
   "pull-request-review-submitted"

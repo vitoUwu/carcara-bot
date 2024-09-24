@@ -1,25 +1,23 @@
 import { STATUS_CODE } from "@std/http/status";
-import { Project } from "app/mod.ts";
-import { createActionRow, createButton } from "app/sdk/discord/components.ts";
-import {
-  bold,
-  timestamp,
-  userMention,
-} from "app/sdk/discord/textFormatting.ts";
-import { WebhookEvent } from "app/types.ts";
 import {
   Bot,
   ButtonStyles,
   sendMessage,
   snowflakeToBigint,
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
+import { Project } from "../../../mod.ts";
+import { WebhookEvent } from "../../../types.ts";
+import { createActionRow, createButton } from "../../discord/components.ts";
+import { bold, timestamp, userMention } from "../../discord/textFormatting.ts";
+
+type ReviewState = "commented" | "changes_requested" | "approved";
 
 export default async function onReviewSubmitted(
   props: WebhookEvent<"pull-request-review-submitted">,
   project: Project,
   bot: Bot,
 ) {
-  const { pull_request, repository, review } = props;
+  const { pull_request, repository, review, sender } = props;
 
   const owner = pull_request.user;
   if (!owner) {
@@ -29,8 +27,6 @@ export default async function onReviewSubmitted(
   const ownerDiscordId = project.users.find(
     (user) => user.githubUsername === owner.login,
   )?.discordId;
-
-  const reviewer = review.user;
 
   const viewOnGithubRow = createActionRow([
     createButton({
@@ -44,20 +40,32 @@ export default async function onReviewSubmitted(
     new Date(pull_request.created_at).getTime() / 1000,
   );
 
+  const state = review.state as ReviewState;
+
+  const title = state === "approved"
+    ? "aprovou o PR de"
+    : state === "changes_requested"
+    ? "pediu alterações no PR de"
+    : "comentou no PR de";
+
+  const color = state === "approved"
+    ? 0x02c563
+    : state === "changes_requested"
+    ? 0xda3633
+    : 0x383a40;
+
   await sendMessage(bot, project.discord.pr_channel_id, {
     content: (ownerDiscordId ? ` ${userMention(ownerDiscordId)}` : ""),
     embeds: [{
-      ...(reviewer?.avatar_url && {
-        thumbnail: {
-          url: reviewer.avatar_url,
-        },
-      }),
-      title: `👀 ${reviewer?.login || "Alguém"} revisou o PR de ${owner.login}`,
+      thumbnail: {
+        url: sender.avatar_url,
+      },
+      title: `${sender.login} ${title} ${owner.login}`,
       description: `${bold(`(${repository.full_name})`)}
 [${bold(`#${pull_request.number} - ${pull_request.title}`)}](${pull_request.html_url}) - ${
         timestamp(seconds, "R")
       }`,
-      color: 0x02c563,
+      color,
       timestamp: review.submitted_at
         ? new Date(review.submitted_at).getTime()
         : new Date().getTime(),

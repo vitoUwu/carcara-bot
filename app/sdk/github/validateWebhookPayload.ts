@@ -1,4 +1,4 @@
-import type { EventKeys, WebhookEvent } from "../../types.ts";
+import type { EventKeys, PullRequestEvent, WebhookEvent } from "../../types.ts";
 
 export function isWebhookEvent<TEventName extends EventKeys = EventKeys>(
   props: unknown,
@@ -28,17 +28,14 @@ export function isPingEvent(
 export function isPullRequestEvent(
   event: string,
   props: unknown,
-): props is WebhookEvent<
-  | "pull-request-opened"
-  | "pull-request-closed"
-  | "pull-request-edited"
-> {
+): props is PullRequestEvent {
   return (
     event === Events.PullRequest &&
     isWebhookEvent<
       | "pull-request-opened"
       | "pull-request-closed"
       | "pull-request-edited"
+      | "pull-request-review-requested"
     >(props)
   );
 }
@@ -50,7 +47,6 @@ export function isPullRequestReviewEvent(
   | "pull-request-review-submitted"
   | "pull-request-review-edited"
   | "pull-request-review-dismissed"
-  | "pull-request-review-requested"
 > {
   return (
     event === Events.PullRequestReview &&
@@ -58,7 +54,6 @@ export function isPullRequestReviewEvent(
       | "pull-request-review-submitted"
       | "pull-request-review-edited"
       | "pull-request-review-dismissed"
-      | "pull-request-review-requested"
     >(props)
   );
 }

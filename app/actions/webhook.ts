@@ -1,16 +1,17 @@
 import { STATUS_CODE } from "@std/http/status";
-import type { AppContext } from "app/mod.ts";
-import onPullRequestMerge from "app/sdk/github/events/onPullRequestMerge.ts";
-import onPullRequestOpen from "app/sdk/github/events/onPullRequestOpen.ts";
-import onReviewSubmitted from "app/sdk/github/events/onReviewSubmitted.ts";
-import { wasInDraft } from "app/sdk/github/utils.ts";
+import type { AppContext } from "../mod.ts";
+import onPullRequestMerge from "../sdk/github/events/onPullRequestMerge.ts";
+import onPullRequestOpen from "../sdk/github/events/onPullRequestOpen.ts";
+import onReviewRequested from "../sdk/github/events/onReviewRequested.ts";
+import onReviewSubmitted from "../sdk/github/events/onReviewSubmitted.ts";
+import { wasInDraft } from "../sdk/github/utils.ts";
 import {
   isPingEvent,
   isPullRequestEvent,
   isPullRequestReviewEvent,
-} from "app/sdk/github/validateWebhookPayload.ts";
-import { verify } from "app/sdk/github/verifyWebhook.ts";
-import { type WebhookEvent } from "app/types.ts";
+} from "../sdk/github/validateWebhookPayload.ts";
+import { verify } from "../sdk/github/verifyWebhook.ts";
+import { type WebhookEvent } from "../types.ts";
 
 export default async function action(
   props: WebhookEvent,
@@ -86,7 +87,15 @@ export default async function action(
       return onPullRequestMerge(props, project, ctx.discord.bot);
     }
 
-    console.warn("Unhandled action. Data:", { project, props });
+    if (props.action === "review_requested") {
+      return onReviewRequested(props, project, ctx.discord.bot);
+    }
+
+    console.warn("Unhandled action. Data:", {
+      action: props.action,
+      project,
+      props,
+    });
     return new Response(null, { status: STATUS_CODE.NoContent });
   }
 
@@ -95,7 +104,11 @@ export default async function action(
       return onReviewSubmitted(props, project, ctx.discord.bot);
     }
 
-    console.warn("Unhandled action. Data:", { project, props });
+    console.warn("Unhandled action. Data:", {
+      action: props.action,
+      project,
+      props,
+    });
     return new Response(null, { status: STATUS_CODE.NoContent });
   }
 
