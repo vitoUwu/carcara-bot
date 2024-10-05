@@ -1,4 +1,8 @@
-import type { EventKeys, PullRequestEvent, WebhookEvent } from "../../types.ts";
+import type {
+  EventKeys,
+  PullRequestEvent,
+  WebhookEvent,
+} from "../../sdk/github/types.ts";
 
 export function isWebhookEvent<TEventName extends EventKeys = EventKeys>(
   props: unknown,

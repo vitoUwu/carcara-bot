@@ -1,4 +1,4 @@
-import type { PullRequestEvent, WebhookEvent } from "../../types.ts";
+import type { PullRequestEvent, WebhookEvent } from "../../sdk/github/types.ts";
 
 export function isDraft(title: string) {
   return ["[draft]", "(draft)"].some((draft) =>
