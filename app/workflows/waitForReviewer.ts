@@ -4,7 +4,7 @@ import type { AppManifest } from "../mod.ts";
 import { getRandomItem } from "../sdk/random.ts";
 import type { ProjectUser } from "../types.ts";
 
-const DELAY = 5000;
+const DELAY = 1000 * 60 * 5;
 
 interface Props extends NotifyReviewerProps {
   reviewers: ProjectUser[];
@@ -48,7 +48,7 @@ export default function workflow() {
         return;
       }
 
-      yield ctx.sleep(DELAY);
+      yield ctx.sleep(DELAY * 3);
 
       const secondCall = yield ctx.callLocalActivity(async () => {
         return await ctx.state.invoke["discord-bot"].actions.notify.reviewer(
