@@ -5,8 +5,8 @@ import {
   sendMessage,
   snowflakeToBigint,
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
-import type { Project } from "../../../mod.ts";
-import type { WebhookEvent } from "../../../types.ts";
+import type { AppContext, Project } from "../../../mod.ts";
+import type { WebhookEvent } from "../../../sdk/github/types.ts";
 import { createActionRow, createButton } from "../../discord/components.ts";
 import { bold, timestamp, userMention } from "../../discord/textFormatting.ts";
 import { getRandomItem } from "../../random.ts";
@@ -15,8 +15,9 @@ import { isDraft } from "../utils.ts";
 export default async function onPullRequestOpen(
   props: WebhookEvent<"pull-request-opened" | "pull-request-edited">,
   project: Project,
-  bot: Bot,
+  ctx: AppContext,
 ) {
+  const bot = ctx.discord.bot;
   const { pull_request, repository } = props;
   if (isDraft(pull_request.title)) {
     return new Response(null, { status: STATUS_CODE.NoContent });

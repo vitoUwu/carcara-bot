@@ -5,16 +5,17 @@ import {
   sendMessage,
   snowflakeToBigint,
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
-import { Project } from "../../../mod.ts";
-import { WebhookEvent } from "../../../types.ts";
+import { AppContext, Project } from "../../../mod.ts";
+import { WebhookEvent } from "../../../sdk/github/types.ts";
 import { createActionRow, createButton } from "../../discord/components.ts";
 import { bold, timestamp, userMention } from "../../discord/textFormatting.ts";
 
 export default async function onReviewRequested(
   props: WebhookEvent<"pull-request-review-requested">,
   project: Project,
-  bot: Bot,
+  ctx: AppContext,
 ) {
+  const bot = ctx.discord.bot;
   const { pull_request, repository, requested_reviewer, sender } = props;
 
   const viewOnGithubRow = createActionRow([

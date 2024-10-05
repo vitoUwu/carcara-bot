@@ -4,6 +4,7 @@ import onPullRequestMerge from "../sdk/github/events/onPullRequestMerge.ts";
 import onPullRequestOpen from "../sdk/github/events/onPullRequestOpen.ts";
 import onReviewRequested from "../sdk/github/events/onReviewRequested.ts";
 import onReviewSubmitted from "../sdk/github/events/onReviewSubmitted.ts";
+import type { WebhookEvent } from "../sdk/github/types.ts";
 import { wasInDraft } from "../sdk/github/utils.ts";
 import {
   isPingEvent,
@@ -11,7 +12,6 @@ import {
   isPullRequestReviewEvent,
 } from "../sdk/github/validateWebhookPayload.ts";
 import { verify } from "../sdk/github/verifyWebhook.ts";
-import { type WebhookEvent } from "../types.ts";
 
 export default async function action(
   props: WebhookEvent,
@@ -80,15 +80,15 @@ export default async function action(
 
   if (isPullRequestEvent(eventName, props)) {
     if (props.action === "opened" || wasInDraft(props)) {
-      return onPullRequestOpen(props, project, ctx.discord.bot);
+      return onPullRequestOpen(props, project, ctx);
     }
 
     if (props.action === "closed" && props.pull_request.merged) {
-      return onPullRequestMerge(props, project, ctx.discord.bot);
+      return onPullRequestMerge(props, project, ctx);
     }
 
     if (props.action === "review_requested") {
-      return onReviewRequested(props, project, ctx.discord.bot);
+      return onReviewRequested(props, project, ctx);
     }
 
     console.warn("Unhandled action. Data:", {
@@ -101,7 +101,7 @@ export default async function action(
 
   if (isPullRequestReviewEvent(eventName, props)) {
     if (props.action === "submitted") {
-      return onReviewSubmitted(props, project, ctx.discord.bot);
+      return onReviewSubmitted(props, project, ctx);
     }
 
     console.warn("Unhandled action. Data:", {

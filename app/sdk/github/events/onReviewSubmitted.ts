@@ -1,12 +1,11 @@
 import { STATUS_CODE } from "@std/http/status";
 import {
-  Bot,
   ButtonStyles,
   sendMessage,
   snowflakeToBigint,
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
-import { Project } from "../../../mod.ts";
-import { WebhookEvent } from "../../../types.ts";
+import { AppContext, Project } from "../../../mod.ts";
+import { WebhookEvent } from "../../../sdk/github/types.ts";
 import { createActionRow, createButton } from "../../discord/components.ts";
 import { bold, timestamp, userMention } from "../../discord/textFormatting.ts";
 
@@ -15,8 +14,9 @@ type ReviewState = "commented" | "changes_requested" | "approved";
 export default async function onReviewSubmitted(
   props: WebhookEvent<"pull-request-review-submitted">,
   project: Project,
-  bot: Bot,
+  ctx: AppContext,
 ) {
+  const bot = ctx.discord.bot;
   const { pull_request, repository, review, sender } = props;
 
   const owner = pull_request.user;

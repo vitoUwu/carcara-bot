@@ -1,12 +1,11 @@
 import { STATUS_CODE } from "@std/http/status";
 import {
-  type Bot,
   ButtonStyles,
   sendMessage,
   snowflakeToBigint,
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
-import type { Project } from "../../../mod.ts";
-import type { WebhookEvent } from "../../../types.ts";
+import type { AppContext, Project } from "../../../mod.ts";
+import type { WebhookEvent } from "../../../sdk/github/types.ts";
 import { createActionRow, createButton } from "../../discord/components.ts";
 import { bold } from "../../discord/textFormatting.ts";
 import { getRandomItem } from "../../random.ts";
@@ -14,8 +13,9 @@ import { getRandomItem } from "../../random.ts";
 export default async function onPullRequestMerge(
   props: WebhookEvent<"pull-request-closed">,
   project: Project,
-  bot: Bot,
+  ctx: AppContext,
 ) {
+  const bot = ctx.discord.bot;
   const { pull_request, repository } = props;
 
   const owner = pull_request.user;
@@ -57,9 +57,9 @@ export default async function onPullRequestMerge(
       },
       title,
       description: `${bold(`(${repository.full_name})`)}
-[${bold(`#${pull_request.number} - ${pull_request.title}`)}](${pull_request.html_url}) - ${duration}\n\n${
-        pull_request.body || "Sem descrição"
-      }`,
+[${bold(`#${pull_request.number} - ${pull_request.title}`)}](${pull_request.html_url}) - ${
+        duration.join(", ")
+      }\n\n${pull_request.body || "Sem descrição"}`,
       color: 0x8957e5,
       timestamp: Date.now(),
     }],
