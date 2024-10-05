@@ -38,27 +38,19 @@ export default function workflow() {
         reviewer,
       };
 
-      const firstCall = yield ctx.callLocalActivity(async () => {
+      yield ctx.callLocalActivity(async () => {
         return await ctx.state.invoke["discord-bot"].actions.notify.reviewer(
           actionProps,
         );
       });
-      if (!firstCall.notified) {
-        yield ctx.log("reviewer was not notified. finishing workflow");
-        return;
-      }
 
       yield ctx.sleep(DELAY * 3);
 
-      const secondCall = yield ctx.callLocalActivity(async () => {
+      yield ctx.callLocalActivity(async () => {
         return await ctx.state.invoke["discord-bot"].actions.notify.reviewer(
           actionProps,
         );
       });
-      if (!secondCall.notified) {
-        yield ctx.log("reviewer was not notified. finishing workflow");
-        return;
-      }
 
       const { newReviewer, newReviewers } = yield ctx.callLocalActivity(() => {
         const newReviewer = getRandomItem(reviewers);

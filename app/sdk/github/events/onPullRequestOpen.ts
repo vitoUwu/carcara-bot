@@ -46,7 +46,7 @@ export default async function onPullRequestOpen(
         thumbnail: {
           url: pull_request.user.avatar_url,
         },
-        title: `${owner} abriu um novo PR`,
+        title: `${owner.login} abriu um novo PR`,
         description: `${bold(`(${repository.full_name})`)}
 [${bold(`#${pull_request.number} - ${pull_request.title}`)}](${pull_request.html_url}) - ${
           timestamp(seconds, "R")
@@ -72,6 +72,7 @@ export default async function onPullRequestOpen(
       AppManifest
     > = {
       key: "discord-bot/workflows/waitForReviewer.ts",
+      id: `review-pr-${message.id}`,
       props: {},
       args: [{
         messageId,
