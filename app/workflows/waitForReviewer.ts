@@ -13,7 +13,7 @@ interface Props extends NotifyReviewerProps {
 export default function workflow() {
   return function* (
     ctx: WorkflowContext<AppManifest>,
-    args: Props,
+    args: Omit<Props, "messageId">,
   ): WorkflowGen<void> {
     let reviewer = args.reviewer;
     let reviewers = args.reviewers.filter((user) =>
@@ -34,7 +34,6 @@ export default function workflow() {
 
       const actionProps = {
         channelId: args.channelId,
-        messageId: args.messageId,
         reviewer,
       };
 

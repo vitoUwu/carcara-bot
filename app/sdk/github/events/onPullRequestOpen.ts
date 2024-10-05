@@ -3,6 +3,7 @@ import type { WorkflowProps } from "apps/workflows/actions/start.ts";
 import {
   sendMessage,
   snowflakeToBigint,
+  startThreadWithMessage,
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
 import type { AppContext, AppManifest, Project } from "../../../mod.ts";
 import type { WebhookEvent } from "../../../sdk/github/types.ts";
@@ -69,8 +70,13 @@ export default async function onPullRequestOpen(
     },
   );
 
+  const thread = await startThreadWithMessage(bot, channelId, message.id, {
+    name: `Pull Request: ${pull_request.title}`.slice(0, 100),
+    autoArchiveDuration: 1440,
+    reason: "Review Pull Request Thread",
+  });
+
   if (reviewer) {
-    const messageId = message.id.toString();
     const workflowProps: WorkflowProps<
       "discord-bot/workflows/waitForReviewer.ts",
       AppManifest
@@ -79,8 +85,7 @@ export default async function onPullRequestOpen(
       id: `review-pr-${message.id}`,
       props: {},
       args: [{
-        messageId,
-        channelId,
+        channelId: `${thread.id}`,
         reviewer,
         reviewers,
       }],

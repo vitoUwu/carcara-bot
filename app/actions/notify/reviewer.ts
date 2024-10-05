@@ -4,13 +4,12 @@ import { userMention } from "../../sdk/discord/textFormatting.ts";
 import type { ProjectUser } from "../../types.ts";
 
 export interface Props {
-  messageId: string;
   channelId: string;
   reviewer: ProjectUser;
 }
 
 export default async function action(
-  { channelId, messageId, reviewer }: Props,
+  { channelId, reviewer }: Props,
   _req: Request,
   ctx: AppContext,
 ) {
@@ -20,9 +19,5 @@ export default async function action(
         reviewer.discordId,
       )
     }`,
-    messageReference: {
-      failIfNotExists: true,
-      messageId: messageId,
-    },
-  }).catch(() => null);
+  }).catch(console.error);
 }

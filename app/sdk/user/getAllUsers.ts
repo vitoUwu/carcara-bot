@@ -14,15 +14,24 @@ export default async function getAllUsers(ctx: AppContext) {
     __resolveType: "resolvables",
   });
 
+  const projectUsers = ctx.projects
+    .flatMap((project) => project.users)
+    .filter((user, index, arr) =>
+      arr.findIndex((u) => u.githubUsername === user.githubUsername) === index
+    );
+
   const users = Object
     .values(resolvables)
     .filter((value) =>
       isResolvable(value) &&
       value.__resolveType === USER_RESOLVE_TYPE &&
       value.user?.githubUsername &&
-      value.user?.discordId
+      value.user?.discordId &&
+      !projectUsers.some((user) =>
+        user.githubUsername === value.user?.githubUsername
+      )
     )
     .map(({ user }) => user);
 
-  return users;
+  return [...users, ...projectUsers];
 }
