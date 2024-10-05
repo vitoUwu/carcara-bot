@@ -1,13 +1,13 @@
 import { STATUS_CODE } from "@std/http/status";
+import { WorkflowProps } from "apps/workflows/actions/start.ts";
 import {
-  type Bot,
-  ButtonStyles,
   sendMessage,
   snowflakeToBigint,
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
-import type { AppContext, Project } from "../../../mod.ts";
+import type { AppContext, AppManifest, Project } from "../../../mod.ts";
 import type { WebhookEvent } from "../../../sdk/github/types.ts";
-import { createActionRow, createButton } from "../../discord/components.ts";
+import confirmReview from "../../discord/buttons/confirmReview.ts";
+import { createActionRow } from "../../discord/components.ts";
 import { bold, timestamp, userMention } from "../../discord/textFormatting.ts";
 import { getRandomItem } from "../../random.ts";
 import { isDraft } from "../utils.ts";
@@ -23,41 +23,66 @@ export default async function onPullRequestOpen(
     return new Response(null, { status: STATUS_CODE.NoContent });
   }
 
-  const owner = pull_request.user.login;
-  const theChosenOne = getRandomItem(
-    project.users.filter((user) => user.githubUsername !== owner),
+  const owner = pull_request.user;
+  const reviewer = getRandomItem(
+    project.users.filter((user) => user.githubUsername !== owner.login),
   );
-  const viewOnGithubRow = createActionRow([
-    createButton({
-      label: "Ver no GitHub",
-      url: pull_request.html_url,
-      style: ButtonStyles.Link,
-    }),
-  ]);
+  const reviewers = project.users.filter((user) =>
+    user.githubUsername !== owner.login &&
+    user.githubUsername !== reviewer?.githubUsername
+  );
 
   const seconds = Math.floor(
     new Date(pull_request.created_at).getTime() / 1000,
   );
+  const channelId = project.discord.pr_channel_id;
 
-  await sendMessage(bot, project.discord.pr_channel_id, {
-    content: (theChosenOne ? ` ${userMention(theChosenOne.discordId)}` : ""),
-    embeds: [{
-      thumbnail: {
-        url: pull_request.user.avatar_url,
-      },
-      title: `${owner} abriu um novo PR`,
-      description: `${bold(`(${repository.full_name})`)}
+  const message = await sendMessage(
+    bot,
+    channelId,
+    {
+      content: (reviewer ? userMention(reviewer.discordId) : ""),
+      embeds: [{
+        thumbnail: {
+          url: pull_request.user.avatar_url,
+        },
+        title: `${owner} abriu um novo PR`,
+        description: `${bold(`(${repository.full_name})`)}
 [${bold(`#${pull_request.number} - ${pull_request.title}`)}](${pull_request.html_url}) - ${
-        timestamp(seconds, "R")
-      }\n\n${pull_request.body || "Sem descrição"}`,
-      color: 0x02c563,
-      timestamp: new Date(pull_request.created_at).getTime(),
-    }],
-    components: [viewOnGithubRow],
-    allowedMentions: {
-      users: theChosenOne ? [snowflakeToBigint(theChosenOne.discordId)] : [],
+          timestamp(seconds, "R")
+        }\n\n${pull_request.body || "Sem descrição"}`,
+        color: 0x02c563,
+        timestamp: new Date(pull_request.created_at).getTime(),
+      }],
+      components: [
+        createActionRow([
+          confirmReview.data,
+        ]),
+      ],
+      allowedMentions: {
+        users: reviewer ? [snowflakeToBigint(reviewer.discordId)] : [],
+      },
     },
-  });
+  );
+
+  if (reviewer) {
+    const messageId = message.id.toString();
+    const workflowProps: WorkflowProps<
+      "discord-bot/workflows/waitForReviewer.ts",
+      AppManifest
+    > = {
+      key: "discord-bot/workflows/waitForReviewer.ts",
+      props: {},
+      args: [{
+        messageId,
+        channelId,
+        reviewer,
+        reviewers,
+      }],
+    };
+
+    await ctx.invoke.workflows.actions.start(workflowProps);
+  }
 
   return new Response(null, { status: STATUS_CODE.NoContent });
 }
