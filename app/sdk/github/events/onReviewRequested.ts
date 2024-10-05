@@ -1,6 +1,5 @@
 import { STATUS_CODE } from "@std/http/status";
 import {
-  Bot,
   ButtonStyles,
   sendMessage,
   snowflakeToBigint,
@@ -9,6 +8,7 @@ import { AppContext, Project } from "../../../mod.ts";
 import { WebhookEvent } from "../../../sdk/github/types.ts";
 import { createActionRow, createButton } from "../../discord/components.ts";
 import { bold, timestamp, userMention } from "../../discord/textFormatting.ts";
+import getUserByGithubUsername from "../../user/getUserByGithubUsername.ts";
 
 export default async function onReviewRequested(
   props: WebhookEvent<"pull-request-review-requested">,
@@ -30,14 +30,13 @@ export default async function onReviewRequested(
     new Date(pull_request.created_at).getTime() / 1000,
   );
 
-  const requestedReviewerDiscordId = project.users.find(
-    (user) => user.githubUsername === requested_reviewer?.login,
-  )?.discordId;
+  const requestedUser = requested_reviewer?.login &&
+    await getUserByGithubUsername({
+      username: requested_reviewer?.login,
+    }, ctx);
 
   await sendMessage(bot, project.discord.pr_channel_id, {
-    content: requestedReviewerDiscordId
-      ? userMention(requestedReviewerDiscordId)
-      : "",
+    content: requestedUser ? userMention(requestedUser.discordId) : "",
     embeds: [{
       thumbnail: {
         url: sender.avatar_url,
@@ -53,9 +52,7 @@ export default async function onReviewRequested(
     }],
     components: [viewOnGithubRow],
     allowedMentions: {
-      users: requestedReviewerDiscordId
-        ? [snowflakeToBigint(requestedReviewerDiscordId)]
-        : [],
+      users: requestedUser ? [snowflakeToBigint(requestedUser.discordId)] : [],
     },
   });
 
