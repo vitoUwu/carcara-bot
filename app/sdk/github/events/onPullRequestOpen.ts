@@ -1,5 +1,5 @@
 import { STATUS_CODE } from "@std/http/status";
-import { WorkflowProps } from "apps/workflows/actions/start.ts";
+import type { WorkflowProps } from "apps/workflows/actions/start.ts";
 import {
   sendMessage,
   snowflakeToBigint,
@@ -10,6 +10,7 @@ import confirmReview from "../../discord/buttons/confirmReview.ts";
 import { createActionRow } from "../../discord/components.ts";
 import { bold, timestamp, userMention } from "../../discord/textFormatting.ts";
 import { getRandomItem } from "../../random.ts";
+import getUserByGithubUsername from "../../user/getUserByGithubUsername.ts";
 import { isDraft } from "../utils.ts";
 
 export default async function onPullRequestOpen(
@@ -27,6 +28,9 @@ export default async function onPullRequestOpen(
   const reviewer = getRandomItem(
     project.users.filter((user) => user.githubUsername !== owner.login),
   );
+  const ownerUser = await getUserByGithubUsername({
+    username: owner.login,
+  }, ctx);
   const reviewers = project.users.filter((user) =>
     user.githubUsername !== owner.login &&
     user.githubUsername !== reviewer?.githubUsername
@@ -56,7 +60,7 @@ export default async function onPullRequestOpen(
       }],
       components: [
         createActionRow([
-          confirmReview.data,
+          confirmReview.component(ownerUser?.discordId || ""),
         ]),
       ],
       allowedMentions: {

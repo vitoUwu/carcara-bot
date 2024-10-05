@@ -1,9 +1,9 @@
-import {
+import type {
   DiscordCreateApplicationCommand,
   DiscordInteraction,
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
-import { AppContext } from "../../mod.ts";
-import { ChatInputInteraction } from "./lib.ts";
+import type { AppContext } from "../../mod.ts";
+import type { Interaction } from "./lib.ts";
 
 export enum DiscordMessageFlags {
   Crossposted = 1 << 0,
@@ -20,7 +20,7 @@ export enum DiscordMessageFlags {
 }
 
 export type ChatInputInteractionExecute = (
-  interaction: ChatInputInteraction,
+  interaction: Interaction,
   req: Request,
   ctx: AppContext,
 ) => Promise<unknown>;

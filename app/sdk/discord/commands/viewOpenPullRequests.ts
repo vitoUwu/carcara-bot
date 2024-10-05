@@ -5,7 +5,7 @@ import {
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
 import type { AppContext } from "../../../mod.ts";
 import { dateInSeconds } from "../../date.ts";
-import type { ChatInputInteraction } from "../lib.ts";
+import type { Interaction } from "../lib.ts";
 import { inlineCode, timestamp } from "../textFormatting.ts";
 
 const data: DiscordCreateApplicationCommand = {
@@ -30,7 +30,7 @@ const data: DiscordCreateApplicationCommand = {
 };
 
 async function execute(
-  interaction: ChatInputInteraction,
+  interaction: Interaction,
   _req: Request,
   ctx: AppContext,
 ) {
@@ -40,7 +40,7 @@ async function execute(
   );
 
   if (!project) {
-    return await interaction.respondWithMessage({
+    return interaction.respondWithMessage({
       content: "Nenhum repositório encontrado",
     });
   }
@@ -52,12 +52,12 @@ async function execute(
   });
 
   if (!response.length) {
-    return await interaction.respondWithMessage({
+    return interaction.respondWithMessage({
       content: "Nenhum pull request aberto foi encontrado",
     });
   }
 
-  return await interaction.respondWithMessage({
+  return interaction.respondWithMessage({
     embeds: [{
       title: `Pull Requests (${response.length})`,
       description: response.length

@@ -2,14 +2,13 @@ import { STATUS_CODE } from "@std/http/status";
 import {
   type DiscordInteraction,
   InteractionTypes,
-  MessageComponentTypes,
   verifySignature,
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
 import type { AppContext } from "../mod.ts";
 import buttons from "../sdk/discord/buttons/index.ts";
 import commands from "../sdk/discord/commands/index.ts";
 import ping from "../sdk/discord/commands/ping.ts";
-import { ChatInputInteraction } from "../sdk/discord/lib.ts";
+import { Interaction } from "../sdk/discord/lib.ts";
 
 export default function action(
   props: DiscordInteraction,
@@ -36,52 +35,52 @@ export default function action(
     }
   }
 
-  if (props.type === InteractionTypes.Ping) {
+  const interaction = new Interaction(props, ctx.discord.bot);
+
+  if (interaction.type === InteractionTypes.Ping) {
     return ping();
   }
 
-  if (!props.data) {
+  if (!interaction.data) {
     return new Response(null, { status: STATUS_CODE.BadRequest });
   }
 
-  if (props.type === InteractionTypes.ApplicationCommand) {
-    const command = commands.get(props.data.name);
+  if (interaction.isApplicationCommandInteraction()) {
+    const command = commands.get(interaction.data.name);
 
     if (!command) {
       return new Response(null, { status: STATUS_CODE.NotFound });
     }
 
     return command.execute(
-      new ChatInputInteraction(
-        props,
-        ctx.discord.bot,
-      ),
+      interaction,
       req,
       ctx,
     ).catch((err) => {
       console.error(err);
       return new Response(null, { status: STATUS_CODE.InternalServerError });
-    });
+    }).finally(() => new Response(null, { status: STATUS_CODE.OK }));
   }
 
-  if (
-    props.type === InteractionTypes.MessageComponent &&
-    props.data.component_type === MessageComponentTypes.Button &&
-    props.data.custom_id
-  ) {
-    const button = buttons.get(props.data.custom_id);
+  if (interaction.isButtonInteraction()) {
+    const buttonData = interaction.parseCustomId();
+    if (!buttonData) {
+      return new Response(null, { status: STATUS_CODE.BadRequest });
+    }
+
+    const button = buttons.get(buttonData.id);
 
     if (!button) {
       return new Response(null, { status: STATUS_CODE.NotFound });
     }
 
     return button.execute(
-      props,
+      interaction,
       req,
       ctx,
     ).catch((err) => {
       console.error(err);
       return new Response(null, { status: STATUS_CODE.InternalServerError });
-    });
+    }).finally(() => new Response(null, { status: STATUS_CODE.OK }));
   }
 }

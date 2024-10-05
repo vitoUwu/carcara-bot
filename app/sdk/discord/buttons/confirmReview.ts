@@ -1,77 +1,66 @@
-import { STATUS_CODE } from "@std/http";
-import {
-  ButtonStyles,
-  type DiscordInteraction,
-  editMessage,
-  editOriginalInteractionResponse,
-  InteractionResponseTypes,
-  sendInteractionResponse,
-} from "https://deno.land/x/discordeno@18.0.1/mod.ts";
+import { ButtonStyles } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
 import type { AppContext } from "../../../mod.ts";
 import { createActionRow, createButton } from "../components.ts";
-import { DiscordMessageFlags } from "../types.ts";
+import type { Interaction } from "../lib.ts";
 import { userMention } from "../textFormatting.ts";
+import { DiscordMessageFlags } from "../types.ts";
 
 async function execute(
-  props: DiscordInteraction,
+  interaction: Interaction,
   _req: Request,
   ctx: AppContext,
 ) {
-  const bot = ctx.discord.bot;
-  const { token, id, message } = props;
+  const { message, member } = interaction;
+  const props = interaction.parseCustomId<"userId">()?.props;
 
-  if (!message) {
-    await sendInteractionResponse(bot, id, token, {
-      type: InteractionResponseTypes.ChannelMessageWithSource,
-      data: {
-        content: "Não foi possível encontrar a mensagem",
-        flags: DiscordMessageFlags.Ephemeral,
-      },
+  if (props?.userId === member?.user?.id) {
+    return interaction.respondWithMessage({
+      content: "Você não pode confirmar seu próprio pull request",
+      flags: DiscordMessageFlags.Ephemeral,
     });
-    return new Response(null, { status: STATUS_CODE.NoContent });
   }
 
-  await sendInteractionResponse(bot, id, token, {
-    type: InteractionResponseTypes.DeferredChannelMessageWithSource,
-    data: {
+  if (!message) {
+    return interaction.respondWithMessage({
+      content: "Não foi possível encontrar a mensagem",
       flags: DiscordMessageFlags.Ephemeral,
-    },
+    });
+  }
+
+  await interaction.deferRespond({
+    flags: DiscordMessageFlags.Ephemeral,
   });
 
   await ctx.invoke.workflows.actions.cancel({
     executionId: `review-pr-${message.id}`,
   });
 
-  if (props.channel_id) {
-    await editMessage(bot, props.channel_id, message.id, {
-      content: props.member?.user?.id
-        ? userMention(props.member?.user?.id)
-        : "",
-      components: [
-        createActionRow([
-          createButton({
-            label: `Revisor: ${props.member?.user?.username}`,
-            style: ButtonStyles.Primary,
-            disabled: true,
-            customId: "noop",
-          }),
-        ]),
-      ],
-    });
-  }
-
-  await editOriginalInteractionResponse(bot, token, {
-    content: "Review confirmado!",
+  await interaction.editOriginalMessage({
+    content: member?.user?.id ? userMention(member?.user?.id) : "",
+    components: [
+      createActionRow([
+        createButton({
+          label: `Revisor: ${member?.user?.username}`,
+          style: ButtonStyles.Primary,
+          disabled: true,
+          customId: "noop",
+        }),
+      ]),
+    ],
   });
 
-  return new Response(null, { status: STATUS_CODE.NoContent });
+  await interaction.editOriginalInteractionResponse({
+    content: "Review confirmado!",
+  });
 }
 
 export default {
-  data: createButton({
-    label: "Confirmar Review",
-    style: ButtonStyles.Primary,
-    customId: "confirm_review",
-  }),
+  id: "confirm_review",
+  component: (userId: string) =>
+    createButton({
+      label: "Confirmar Review",
+      style: ButtonStyles.Primary,
+      customId: `confirm_review;userId=${userId}`,
+    }),
   execute,
 };

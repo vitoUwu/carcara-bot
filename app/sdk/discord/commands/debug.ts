@@ -3,9 +3,9 @@ import {
   type DiscordCreateApplicationCommand,
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
 import type { AppContext } from "../../../mod.ts";
-import clickMe from "../buttons/confirmReview.ts";
+import confirmReview from "../buttons/confirmReview.ts";
 import { createActionRow } from "../components.ts";
-import type { ChatInputInteraction } from "../lib.ts";
+import type { Interaction } from "../lib.ts";
 
 const data: DiscordCreateApplicationCommand = {
   name: "debug",
@@ -15,12 +15,12 @@ const data: DiscordCreateApplicationCommand = {
 };
 
 async function execute(
-  interaction: ChatInputInteraction,
+  interaction: Interaction,
   _req: Request,
   _ctx: AppContext,
 ) {
   const row = createActionRow([
-    clickMe.data,
+    confirmReview.component("504717946124369937"),
   ]);
 
   return await interaction.respondWithMessage({
