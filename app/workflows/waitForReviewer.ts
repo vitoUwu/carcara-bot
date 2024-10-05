@@ -1,21 +1,75 @@
-import { type WorkflowContext, WorkflowGen } from "deco/mod.ts";
-// import type { Props as SendReviewerMessageProps } from "../actions/discord/sendReviewerMessage.ts";
-import { type AppManifest } from "../mod.ts";
+import type { WorkflowContext, WorkflowGen } from "deco/mod.ts";
+import type { Props as NotifyReviewerProps } from "../actions/notify/reviewer.ts";
+import type { AppManifest } from "../mod.ts";
+import { getRandomItem } from "../sdk/random.ts";
+import type { ProjectUser } from "../types.ts";
 
-export default function Index() {
+const DELAY = 5000;
+
+interface Props extends NotifyReviewerProps {
+  reviewers: ProjectUser[];
+}
+
+export default function workflow() {
   return function* (
     ctx: WorkflowContext<AppManifest>,
-    // props: SendReviewerMessageProps,
+    args: Props,
   ): WorkflowGen<void> {
-    yield ctx.log("Waiting for reviewer");
+    let reviewer = args.reviewer;
+    let reviewers = args.reviewers.filter((user) =>
+      user.githubUsername !== reviewer.githubUsername
+    );
 
-    // wait 5 minutes and send message
-    yield ctx.sleep(5 * 60 * 1000);
-    // yield ctx.invoke(
-    //   "discord-bot/actions/discord/sendReviewerMessage.ts",
-    //   props,
-    // );
+    while (reviewer) {
+      yield ctx.log(
+        `Waiting for reviewer. ${reviewer.githubUsername}`,
+      );
+      yield ctx.log(
+        `Reviewers in wait list: ${
+          reviewers.map((user) => user.githubUsername)
+        }`,
+      );
 
-    yield ctx.log("Reviewer message sent");
+      yield ctx.sleep(DELAY);
+
+      const actionProps = {
+        channelId: args.channelId,
+        messageId: args.messageId,
+        reviewer,
+      };
+
+      const firstCall = yield ctx.callLocalActivity(async () => {
+        return await ctx.state.invoke["discord-bot"].actions.notify.reviewer(
+          actionProps,
+        );
+      });
+      if (!firstCall.notified) {
+        yield ctx.log("reviewer was not notified. finishing workflow");
+        return;
+      }
+
+      yield ctx.sleep(DELAY);
+
+      const secondCall = yield ctx.callLocalActivity(async () => {
+        return await ctx.state.invoke["discord-bot"].actions.notify.reviewer(
+          actionProps,
+        );
+      });
+      if (!secondCall.notified) {
+        yield ctx.log("reviewer was not notified. finishing workflow");
+        return;
+      }
+
+      const { newReviewer, newReviewers } = yield ctx.callLocalActivity(() => {
+        const newReviewer = getRandomItem(reviewers);
+        const newReviewers = reviewers.filter((user) =>
+          user.githubUsername !== newReviewer.githubUsername
+        );
+        return { newReviewer, newReviewers };
+      });
+
+      reviewer = newReviewer;
+      reviewers = newReviewers;
+    }
   };
 }

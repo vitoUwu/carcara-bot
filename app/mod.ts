@@ -1,4 +1,5 @@
 import type { Secret } from "apps/website/loaders/secret.ts";
+import workflow from "apps/workflows/mod.ts";
 import type {
   App as A,
   AppContext as AC,
@@ -154,10 +155,10 @@ export default function CarcaraBot(props: Props) {
     },
   };
 
-  const app: A<Manifest, typeof state, []> = {
+  const app: A<Manifest, typeof state, [ReturnType<typeof workflow>]> = {
     state,
     manifest,
-    // dependencies: [workflow({})],
+    dependencies: [workflow({})],
   };
 
   return app;
