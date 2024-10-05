@@ -7,9 +7,9 @@ import {
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
 import type { AppContext } from "../mod.ts";
 import buttons from "../sdk/discord/buttons/index.ts";
+import commands from "../sdk/discord/commands/index.ts";
 import ping from "../sdk/discord/commands/ping.ts";
 import { ChatInputInteraction } from "../sdk/discord/lib.ts";
-import { COMMANDS } from "./updateCommands.ts";
 
 export default function action(
   props: DiscordInteraction,
@@ -45,7 +45,7 @@ export default function action(
   }
 
   if (props.type === InteractionTypes.ApplicationCommand) {
-    const command = COMMANDS.get(props.data.name);
+    const command = commands.get(props.data.name);
 
     if (!command) {
       return new Response(null, { status: STATUS_CODE.NotFound });
