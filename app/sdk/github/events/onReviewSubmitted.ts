@@ -20,7 +20,7 @@ export default async function onReviewSubmitted(
   const { pull_request, repository, review, sender } = props;
 
   const owner = pull_request.user;
-  if (!owner) {
+  if (!owner || owner.login === sender.login) {
     return new Response(null, { status: STATUS_CODE.NoContent });
   }
 
