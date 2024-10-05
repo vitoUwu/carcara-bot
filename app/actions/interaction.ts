@@ -2,9 +2,11 @@ import { STATUS_CODE } from "@std/http/status";
 import {
   type DiscordInteraction,
   InteractionTypes,
+  MessageComponentTypes,
   verifySignature,
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
 import type { AppContext } from "../mod.ts";
+import buttons from "../sdk/discord/buttons/index.ts";
 import ping from "../sdk/discord/commands/ping.ts";
 import { ChatInputInteraction } from "../sdk/discord/lib.ts";
 import { COMMANDS } from "./updateCommands.ts";
@@ -54,6 +56,27 @@ export default function action(
         props,
         ctx.discord.bot,
       ),
+      req,
+      ctx,
+    ).catch((err) => {
+      console.error(err);
+      return new Response(null, { status: STATUS_CODE.InternalServerError });
+    });
+  }
+
+  if (
+    props.type === InteractionTypes.MessageComponent &&
+    props.data.component_type === MessageComponentTypes.Button &&
+    props.data.custom_id
+  ) {
+    const button = buttons.get(props.data.custom_id);
+
+    if (!button) {
+      return new Response(null, { status: STATUS_CODE.NotFound });
+    }
+
+    return button.execute(
+      props,
       req,
       ctx,
     ).catch((err) => {
