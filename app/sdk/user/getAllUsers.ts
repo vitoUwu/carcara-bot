@@ -17,6 +17,7 @@ export default async function getAllUsers(ctx: AppContext) {
   const projectUsers = ctx.projects
     .flatMap((project) => project.users)
     .filter((user, index, arr) =>
+      "githubUsername" in user &&
       arr.findIndex((u) => u.githubUsername === user.githubUsername) === index
     );
 
