@@ -1,6 +1,7 @@
-import { STATUS_CODE } from "@std/http/status";
+import { STATUS_CODE } from "@std/http";
 import {
   ButtonStyles,
+  editChannel,
   sendMessage,
   snowflakeToBigint,
 } from "https://deno.land/x/discordeno@18.0.1/mod.ts";
@@ -8,6 +9,7 @@ import type { AppContext, Project } from "../../../mod.ts";
 import type { WebhookEvent } from "../../../sdk/github/types.ts";
 import { createActionRow, createButton } from "../../discord/components.ts";
 import { bold } from "../../discord/textFormatting.ts";
+import { getPullRequestThreadId } from "../../kv.ts";
 import { getRandomItem } from "../../random.ts";
 
 export default async function onPullRequestMerge(
@@ -50,7 +52,10 @@ export default async function onPullRequestMerge(
     }),
   ]);
 
-  await sendMessage(bot, project.discord.pr_channel_id, {
+  const threadId = await getPullRequestThreadId(`${pull_request.id}`);
+  const channelId = threadId || project.discord.pr_channel_id;
+
+  await sendMessage(bot, channelId, {
     embeds: [{
       thumbnail: {
         url: mergedBy.avatar_url,
@@ -68,6 +73,12 @@ export default async function onPullRequestMerge(
       users: theChosenOne ? [snowflakeToBigint(theChosenOne.discordId)] : [],
     },
   });
+
+  if (threadId) {
+    await editChannel(bot, threadId, {
+      archived: true,
+    });
+  }
 
   return new Response(null, { status: STATUS_CODE.NoContent });
 }

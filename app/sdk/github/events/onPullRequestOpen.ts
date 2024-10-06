@@ -10,6 +10,7 @@ import type { WebhookEvent } from "../../../sdk/github/types.ts";
 import confirmReview from "../../discord/buttons/confirmReview.ts";
 import { createActionRow } from "../../discord/components.ts";
 import { bold, timestamp, userMention } from "../../discord/textFormatting.ts";
+import { setPullRequestThreadId } from "../../kv.ts";
 import { getRandomItem } from "../../random.ts";
 import getUserByGithubUsername from "../../user/getUserByGithubUsername.ts";
 import { isDraft } from "../utils.ts";
@@ -76,6 +77,9 @@ export default async function onPullRequestOpen(
     reason: "Review Pull Request Thread",
   });
 
+  const threadId = thread.id.toString();
+  await setPullRequestThreadId(`${pull_request.id}`, threadId);
+
   if (reviewer) {
     const workflowProps: WorkflowProps<
       "discord-bot/workflows/waitForReviewer.ts",
@@ -85,7 +89,7 @@ export default async function onPullRequestOpen(
       id: `review-pr-${message.id}`,
       props: {},
       args: [{
-        channelId: `${thread.id}`,
+        channelId: threadId,
         reviewer,
         reviewers,
       }],

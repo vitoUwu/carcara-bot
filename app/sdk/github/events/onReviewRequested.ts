@@ -8,6 +8,7 @@ import { AppContext, Project } from "../../../mod.ts";
 import { WebhookEvent } from "../../../sdk/github/types.ts";
 import { createActionRow, createButton } from "../../discord/components.ts";
 import { bold, timestamp, userMention } from "../../discord/textFormatting.ts";
+import { getPullRequestThreadId } from "../../kv.ts";
 import getUserByGithubUsername from "../../user/getUserByGithubUsername.ts";
 
 export default async function onReviewRequested(
@@ -35,7 +36,10 @@ export default async function onReviewRequested(
       username: requested_reviewer?.login,
     }, ctx);
 
-  await sendMessage(bot, project.discord.pr_channel_id, {
+  const threadId = await getPullRequestThreadId(`${pull_request.id}`) ||
+    project.discord.pr_channel_id;
+
+  await sendMessage(bot, threadId, {
     content: requestedUser ? userMention(requestedUser.discordId) : "",
     embeds: [{
       thumbnail: {

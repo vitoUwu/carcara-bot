@@ -8,6 +8,7 @@ import { AppContext, Project } from "../../../mod.ts";
 import { WebhookEvent } from "../../../sdk/github/types.ts";
 import { createActionRow, createButton } from "../../discord/components.ts";
 import { bold, timestamp, userMention } from "../../discord/textFormatting.ts";
+import { getPullRequestThreadId } from "../../kv.ts";
 
 type ReviewState = "commented" | "changes_requested" | "approved";
 
@@ -54,7 +55,10 @@ export default async function onReviewSubmitted(
     ? 0xda3633
     : 0x383a40;
 
-  await sendMessage(bot, project.discord.pr_channel_id, {
+  const threadId = await getPullRequestThreadId(`${pull_request.id}`) ||
+    project.discord.pr_channel_id;
+
+  await sendMessage(bot, threadId, {
     content: (ownerDiscordId ? ` ${userMention(ownerDiscordId)}` : ""),
     embeds: [{
       thumbnail: {
