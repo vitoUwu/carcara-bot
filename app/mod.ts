@@ -111,6 +111,11 @@ interface Props {
    * @title Messages
    */
   messages?: MessageCronJob[];
+  /**
+   * @description Enable this to create a workflow to make people confirm they will review the pull request
+   * @default false
+   */
+  confirmPullRequestReview?: boolean;
 }
 
 /**

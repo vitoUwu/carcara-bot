@@ -1,6 +1,7 @@
 import { STATUS_CODE } from "@std/http/status";
 import type { WorkflowProps } from "apps/workflows/actions/start.ts";
 import {
+  ButtonStyles,
   sendMessage,
   snowflakeToBigint,
   startThreadWithMessage,
@@ -8,7 +9,7 @@ import {
 import type { AppContext, AppManifest, Project } from "../../../mod.ts";
 import type { WebhookEvent } from "../../../sdk/github/types.ts";
 import confirmReview from "../../discord/buttons/confirmReview.ts";
-import { createActionRow } from "../../discord/components.ts";
+import { createActionRow, createButton } from "../../discord/components.ts";
 import { bold, timestamp, userMention } from "../../discord/textFormatting.ts";
 import { setPullRequestThreadId } from "../../kv.ts";
 import { getRandomItem } from "../../random.ts";
@@ -42,6 +43,17 @@ export default async function onPullRequestOpen(
     new Date(pull_request.created_at).getTime() / 1000,
   );
   const channelId = project.discord.pr_channel_id;
+  const row = ctx.confirmPullRequestReview
+    ? createActionRow([
+      confirmReview.component(ownerUser?.discordId || ""),
+    ])
+    : createActionRow([
+      createButton({
+        label: "Ver no GitHub",
+        url: pull_request.html_url,
+        style: ButtonStyles.Link,
+      }),
+    ]);
 
   const message = await sendMessage(
     bot,
@@ -60,11 +72,7 @@ export default async function onPullRequestOpen(
         color: 0x02c563,
         timestamp: new Date(pull_request.created_at).getTime(),
       }],
-      components: [
-        createActionRow([
-          confirmReview.component(ownerUser?.discordId || ""),
-        ]),
-      ],
+      components: [row],
       allowedMentions: {
         users: reviewer ? [snowflakeToBigint(reviewer.discordId)] : [],
       },
@@ -80,7 +88,7 @@ export default async function onPullRequestOpen(
   const threadId = thread.id.toString();
   await setPullRequestThreadId(`${pull_request.id}`, threadId);
 
-  if (reviewer) {
+  if (reviewer && ctx.confirmPullRequestReview) {
     const workflowProps: WorkflowProps<
       "discord-bot/workflows/waitForReviewer.ts",
       AppManifest
